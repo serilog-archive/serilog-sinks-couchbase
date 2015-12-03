@@ -19,6 +19,8 @@ using Serilog.Sinks.Couchbase;
 
 namespace Serilog
 {
+    using System.Collections.Generic;
+
     /// <summary>
     /// Adds the WriteTo.Couchbase() extension method to <see cref="LoggerConfiguration"/>.
     /// </summary>
@@ -30,6 +32,7 @@ namespace Serilog
         /// <param name="loggerConfiguration">The logger configuration.</param>
         /// <param name="couchbaseUriList">A list of a Couchbase database servers.</param>
         /// <param name="bucketName">The bucket to store batches in.</param>
+        /// <param name="bucketPassword">The password for the specified bucket.</param>
         /// <param name="restrictedToMinimumLevel">The minimum log event level required in order to write an event to the sink.</param>
         /// <param name="batchPostingLimit">The maximum number of events to post in a single batch.</param>
         /// <param name="period">The time to wait between checking for event batches.</param>
@@ -38,22 +41,23 @@ namespace Serilog
         /// <exception cref="ArgumentNullException">A required parameter is null.</exception>
         public static LoggerConfiguration Couchbase(
             this LoggerSinkConfiguration loggerConfiguration,
-            string[] couchbaseUriList, 
+            List<Uri> couchbaseUriList, 
             string bucketName, 
+            string bucketPassword = "",
             LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum,
             int batchPostingLimit = CouchbaseSink.DefaultBatchPostingLimit,
             TimeSpan? period = null,
             IFormatProvider formatProvider = null)
         {
-            if (loggerConfiguration == null) throw new ArgumentNullException("loggerConfiguration");
-            if (couchbaseUriList == null) throw new ArgumentNullException("couchbaseUriList");
-            if (couchbaseUriList.Length == 0) throw new ArgumentException("couchbaseUriList");
-            if (couchbaseUriList[0] == null) throw new ArgumentNullException("couchbaseUriList");
-            if (bucketName == null) throw new ArgumentNullException("bucketName");
+            if (loggerConfiguration == null) throw new ArgumentNullException(nameof(loggerConfiguration));
+            if (couchbaseUriList == null) throw new ArgumentNullException(nameof(couchbaseUriList));
+            if (couchbaseUriList.Count == 0) throw new ArgumentException(nameof(couchbaseUriList));
+            if (couchbaseUriList[0] == null) throw new ArgumentNullException(nameof(couchbaseUriList));
+            if (bucketName == null) throw new ArgumentNullException(nameof(bucketName));
 
             var defaultedPeriod = period ?? CouchbaseSink.DefaultPeriod;
             return loggerConfiguration.Sink(
-                new CouchbaseSink(couchbaseUriList, bucketName, batchPostingLimit, defaultedPeriod, formatProvider),
+                new CouchbaseSink(couchbaseUriList, bucketName, bucketPassword, batchPostingLimit, defaultedPeriod, formatProvider),
                 restrictedToMinimumLevel);
         }
     }
